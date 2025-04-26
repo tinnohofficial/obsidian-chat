@@ -257,10 +257,32 @@
 
 .copilot-chat-input-input {
 	width: 100%;
+	min-height: 36px;        /* Reduced from the implied 60px */
+	height: auto;            /* Allow height to be determined by content */
+	max-height: 200px;       /* Prevent excessive growth */
+	resize: none;            /* Disable manual resizing */
+	overflow-y: auto;        /* Add scrollbar when content exceeds max-height */
+	padding: 8px;            /* Add some padding for text */
+	line-height: 1.5;        /* Comfortable line height */
+	box-sizing: border-box;  /* Include padding in the element's total width/height */
 }
 
 .copilot-chat-input-button {
-	height: 60px;
+	height: 36px;            /* Make button match the new textarea height */
+}
+
+/* Style the scrollbar for better aesthetics */
+.copilot-chat-input-input::-webkit-scrollbar {
+	width: 6px;
+}
+
+.copilot-chat-input-input::-webkit-scrollbar-thumb {
+	background-color: var(--background-modifier-border);
+	border-radius: 3px;
+}
+
+.copilot-chat-input-input::-webkit-scrollbar-track {
+	background: transparent;
 }
 
 .copilot-chat-header-container {
@@ -703,4 +725,23 @@
 
 .copilot-chat-message table th {
 	background-color: var(--background-secondary);
+}
+
+.copilot-chat-loading-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

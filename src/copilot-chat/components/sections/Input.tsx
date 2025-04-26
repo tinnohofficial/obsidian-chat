@@ -33,6 +33,17 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 		left: 0,
 	});
 
+	// Add auto-resize functionality
+	const adjustTextareaHeight = () => {
+		const textarea = textareaRef.current;
+		if (!textarea) return;
+
+		// Reset the height to auto to get the correct scrollHeight
+		textarea.style.height = "auto";
+		// Set the height to scrollHeight to fit the content exactly
+		textarea.style.height = `${textarea.scrollHeight}px`;
+	};
+
 	const updateCursorPosition = () => {
 		if (!textareaRef.current) return;
 
@@ -91,6 +102,7 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 					newCursorPos,
 				);
 				updateCursorPosition();
+				adjustTextareaHeight(); // Adjust height after inserting file link
 			}
 		}, 0);
 	};
@@ -117,6 +129,8 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 			start: e.target.selectionStart,
 			end: e.target.selectionEnd,
 		});
+		
+		adjustTextareaHeight(); // Adjust height when content changes
 	};
 
 	const extractLinkedNotes = async () => {
@@ -174,8 +188,16 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 						.join("\n\n")}`
 				: message;
 
-			await sendMessage(plugin, apiMessage, displayMessage, linkedNotes);
+			// Clear message immediately
 			setMessage("");
+			
+			// Reset textarea height after sending
+			if (textareaRef.current) {
+				textareaRef.current.style.height = "36px";
+			}
+			
+			// Then send the message (after clearing the input)
+			await sendMessage(plugin, apiMessage, displayMessage, linkedNotes);
 		} catch (error) {
 			console.error("Failed to send message:", error);
 		}
@@ -210,6 +232,9 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 				"select",
 				updateCursorPosition,
 			);
+			
+			// Initialize textarea height
+			adjustTextareaHeight();
 		}
 
 		return () => {
@@ -226,6 +251,11 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 		};
 	}, []);
 
+	// Add effect to adjust textarea height whenever message changes
+	useEffect(() => {
+		adjustTextareaHeight();
+	}, [message]);
+
 	return (
 		<div className={concat(BASE_CLASSNAME, "container")}>
 			<ModelSelector isAuthenticated={isAuthenticated} />
@@ -241,6 +271,7 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 					onKeyDown={handleKeyDown}
 					placeholder="Ask GitHub Copilot something... Use [[]] to link notes"
 					disabled={isLoading || !isAuthenticated}
+					rows={1} // Start with one row
 				/>
 				{showFileSuggestion && (
 					<FileSuggestion
@@ -258,7 +289,7 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 						isLoading || message.trim() === "" || !isAuthenticated
 					}
 				>
-					{isLoading ? "Thinking..." : "Send"}
+					{isLoading ? <div className="copilot-chat-loading-spinner"></div> : "Send"}
 				</button>
 			</div>
 		</div>
