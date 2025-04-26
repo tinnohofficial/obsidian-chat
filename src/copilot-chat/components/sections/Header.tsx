@@ -19,7 +19,7 @@ const Header: React.FC = () => {
 		useState(false);
 
 	const handleClearChat = () => {
-		if (confirm("Are you sure you want to delete this conversation?")) {
+		// if (confirm("Are you sure you want to delete this conversation?")) {
 			if (activeConversationId && plugin) {
 				deleteConversation(plugin, activeConversationId);
 				clearMessages();
@@ -27,7 +27,7 @@ const Header: React.FC = () => {
 			} else {
 				clearMessages();
 			}
-		}
+		// }
 	};
 
 	const handleNewConversation = () => {

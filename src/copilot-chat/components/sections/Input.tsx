@@ -3,6 +3,7 @@ import { concat, cx } from "../../../utils/style";
 import { useCopilotStore } from "../../store/store";
 import { usePlugin } from "../../hooks/usePlugin";
 import ModelSelector from "./ModelSelector";
+import FolderSelector from "./FolderSelector";
 import FileSuggestion from "../atoms/FileSuggestion";
 import { Notice } from "obsidian";
 
@@ -20,7 +21,7 @@ interface CursorPosition {
 const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 	const [message, setMessage] = useState("");
 	const plugin = usePlugin();
-	const { sendMessage, isAuthenticated } = useCopilotStore();
+	const { sendMessage, isAuthenticated, selectedFolder } = useCopilotStore();
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 	const [cursorPosition, setCursorPosition] = useState<CursorPosition>({
 		start: 0,
@@ -28,10 +29,6 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 	});
 	const [showFileSuggestion, setShowFileSuggestion] = useState(false);
 	const [fileSearchQuery, setFileSearchQuery] = useState("");
-	const [dropdownPosition] = useState({
-		top: 0,
-		left: 0,
-	});
 
 	// Add auto-resize functionality
 	const adjustTextareaHeight = () => {
@@ -151,7 +148,16 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 			processedFiles.add(filename);
 
 			const files = plugin.app.vault.getMarkdownFiles();
-			const file = files.find((f) => f.basename === filename);
+			
+			// Filter files by the selected folder if not at root
+			const folderFiltered = selectedFolder === "/" 
+				? files 
+				: files.filter(file => 
+					file.path.startsWith(selectedFolder + "/") || 
+					file.path === selectedFolder
+				);
+
+			const file = folderFiltered.find((f) => f.basename === filename);
 
 			if (file) {
 				try {
@@ -166,7 +172,7 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 					new Notice(`Could not read file: ${filename}`);
 				}
 			} else {
-				new Notice(`File not found: ${filename}`);
+				new Notice(`File not found${selectedFolder !== "/" ? ` in ${selectedFolder}` : ""}: ${filename}`);
 			}
 		}
 
@@ -258,7 +264,10 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 
 	return (
 		<div className={concat(BASE_CLASSNAME, "container")}>
-			<ModelSelector isAuthenticated={isAuthenticated} />
+			<div className={concat(BASE_CLASSNAME, "top-controls")}>
+				<ModelSelector isAuthenticated={isAuthenticated} />
+				<FolderSelector />
+			</div>
 			<div className={concat(BASE_CLASSNAME, "input-container")}>
 				<textarea
 					ref={textareaRef}
@@ -269,17 +278,18 @@ const Input: React.FC<InputProps> = ({ isLoading = false }) => {
 					value={message}
 					onChange={handleMessageChange}
 					onKeyDown={handleKeyDown}
-					placeholder="Ask GitHub Copilot something... Use [[]] to link notes"
+					placeholder={`[[]] to link notes${selectedFolder !== "/" ? ` from ${selectedFolder}` : ""}`}
 					disabled={isLoading || !isAuthenticated}
 					rows={1} // Start with one row
 				/>
 				{showFileSuggestion && (
 					<FileSuggestion
 						query={fileSearchQuery}
-						position={dropdownPosition}
+						position={{top: 0, left: 0}} // Position is set by inline styling in FileSuggestion
 						onSelect={handleFileSelect}
 						onClose={() => setShowFileSuggestion(false)}
 						plugin={plugin}
+						folderPath={selectedFolder}
 					/>
 				)}
 				<button

@@ -322,25 +322,26 @@
  * Model Selector Styles
  ***********************/
 .copilot-chat-model-selector-container {
-	display: flex;
-	align-items: center;
-	margin-bottom: 8px;
-	position: relative;
-	width: 100%;
+  flex: 2; /* Giving model selector more weight than folder selector */
+  margin-right: 10px; /* Add spacing between the selectors */
+  height: 30px;
+  display: flex;
+  align-items: center;
 }
 
 .copilot-chat-model-selector-select {
-	width: 100%;
-	background-color: var(--background-secondary);
-	border-radius: 4px;
-	cursor: pointer;
-	font-size: 0.9rem;
-	border: 1px solid var(--background-modifier-border);
-	color: var(--text-normal);
-	transition: border-color 0.2s ease;
-	appearance: auto;
-	-webkit-appearance: listbox;
-	padding: 0 0 0 4px;
+  width: 100%;
+  height: 28px; /* Fixed height to match the folder selector button */
+  background-color: var(--background-secondary);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  transition: border-color 0.2s ease;
+  appearance: auto;
+  -webkit-appearance: listbox;
+  padding: 0 0 0 4px;
 }
 
 .copilot-chat-model-selector-select:focus {
@@ -474,27 +475,37 @@
 /***********************
  * File Suggestion Styles
  ***********************/
+/* Improve file suggestion styling */
 .copilot-chat-file-suggestion-container {
+  position: absolute;
+  top: -200px;
+  left: 10px;
+  width: calc(100% - 20px);
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 1000;
   background-color: var(--background-primary);
   border: 1px solid var(--background-modifier-border);
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  max-height: 200px;
-  width: 250px;
-  overflow-y: auto;
-  z-index: 1000;
+  box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
 }
 
-.copilot-chat-file-suggestion-list {
-  padding: 5px 0;
+.copilot-chat-file-suggestion-no-results {
+  padding: 10px;
+  text-align: center;
+  color: var(--text-muted);
 }
 
 .copilot-chat-file-suggestion-item {
-  padding: 5px 10px;
+  padding: 8px 10px;
   cursor: pointer;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  border-bottom: 1px solid var(--background-modifier-border);
+  display: flex;
+  flex-direction: column;
+}
+
+.copilot-chat-file-suggestion-item:last-child {
+  border-bottom: none;
 }
 
 .copilot-chat-file-suggestion-item:hover {
@@ -505,10 +516,14 @@
   background-color: var(--background-secondary);
 }
 
-.copilot-chat-file-suggestion-no-results {
-  padding: 10px;
-  text-align: center;
+.copilot-chat-file-suggestion-item-filename {
+  font-weight: 500;
+}
+
+.copilot-chat-file-suggestion-item-path {
+  font-size: 0.8em;
   color: var(--text-muted);
+  margin-top: 2px;
 }
 
 /***********************
@@ -744,4 +759,104 @@
   100% {
     transform: rotate(360deg);
   }
+}
+
+/* Folder selector styles - removing duplicates and improving consistency */
+.copilot-chat-folder-selector-container {
+  position: relative;
+  flex: 1; /* Take remaining space */
+  width: 100%; /* Fill available width */
+}
+
+.copilot-chat-folder-selector-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--background-secondary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background-color 0.2s ease;
+}
+
+.copilot-chat-folder-selector-button:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.copilot-chat-folder-selector-label {
+  flex-grow: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 4px;
+}
+
+.copilot-chat-folder-selector-icon {
+  font-size: 0.7rem;
+}
+
+.copilot-chat-folder-selector-dropdown {
+  position: absolute;
+  bottom: 100%;  /* Change from top: 100% to bottom: 100% to make dropdown appear above */
+  left: 0;
+  right: 0;
+  margin-bottom: 4px;  /* Change from margin-top to margin-bottom */
+  background-color: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+  scrollbar-width: thin;
+}
+
+.copilot-chat-folder-selector-dropdown::-webkit-scrollbar {
+  width: 6px;
+}
+
+.copilot-chat-folder-selector-dropdown::-webkit-scrollbar-thumb {
+  background-color: var(--background-modifier-border);
+  border-radius: 3px;
+}
+
+.copilot-chat-folder-selector-dropdown::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.copilot-chat-folder-selector-item {
+  padding: 6px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-bottom: 1px solid var(--background-modifier-border);
+  font-size: 0.85rem;
+}
+
+.copilot-chat-folder-selector-item:last-child {
+  border-bottom: none;
+}
+
+.copilot-chat-folder-selector-item:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.copilot-chat-folder-selector-item-selected {
+  background-color: var(--background-secondary);
+  font-weight: 500;
+}
+
+/* Update the input container to accommodate the top controls */
+.copilot-chat-input-top-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px; /* Reduced from 10px to 6px to decrease vertical spacing */
+  padding: 0 2px;
 }

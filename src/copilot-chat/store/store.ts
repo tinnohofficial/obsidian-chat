@@ -7,7 +7,13 @@ import {
 	createConversationSlice,
 } from "./slices/conversation";
 
-type StoreState = AuthSlice & MessageSlice & ConversationSlice;
+// Add interface for folder selection state
+interface FolderSelectionSlice {
+	selectedFolder: string;
+	setSelectedFolder: (folder: string) => void;
+}
+
+type StoreState = AuthSlice & MessageSlice & ConversationSlice & FolderSelectionSlice;
 
 type BoundStateCreator<T> = StateCreator<StoreState, [], [], T>;
 
@@ -25,10 +31,17 @@ const boundConversationSlice: BoundStateCreator<ConversationSlice> = (
 	...createConversationSlice(...a),
 });
 
+// Create folder selection slice
+const boundFolderSelectionSlice: BoundStateCreator<FolderSelectionSlice> = (...a) => ({
+	selectedFolder: "/", // Default to root folder (all vault)
+	setSelectedFolder: (folder: string) => a[0]({ selectedFolder: folder }),
+});
+
 export const useCopilotStore = create<StoreState>()((...a) => ({
 	...boundAuthSlice(...a),
 	...boundMessageSlice(...a),
 	...boundConversationSlice(...a),
+	...boundFolderSelectionSlice(...a),
 }));
 
 export const useAuthStore = useCopilotStore;
