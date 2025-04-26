@@ -42,7 +42,11 @@ const context = await esbuild.context({
 		".tiktoken": "text",
 		".noindex": "text",
 		".node": "binary",
+		".tsx": "tsx",
+		".ts": "ts",
 	},
+	jsx: "automatic",
+	jsxImportSource: "react",
 	jsxSideEffects: true, // Can keep 'unused' imports
 });
 

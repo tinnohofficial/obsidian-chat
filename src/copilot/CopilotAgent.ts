@@ -1,7 +1,6 @@
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import * as path from "path";
 import { Notice } from "obsidian";
-import { EditorView } from "@codemirror/view";
 
 import CopilotPlugin from "../main";
 import { SettingsObserver } from "../settings/CopilotPluginSettingTab";
@@ -11,8 +10,6 @@ import Logger from "../helpers/Logger";
 import Json from "../helpers/Json";
 import Client, { CopilotResponse } from "./Client";
 import File from "../helpers/File";
-import { GetCompletionsParams } from "@pierrad/ts-lsp-client";
-import { InlineSuggestionEffect } from "../extensions/InlineSuggestionState";
 
 class CopilotAgent implements SettingsObserver {
 	private plugin: CopilotPlugin;
@@ -125,27 +122,6 @@ class CopilotAgent implements SettingsObserver {
 			Logger.getInstance().log(`child process exited with code ${code}`);
 			new Notice("Copilot has stopped.");
 		});
-	}
-
-	public async triggerCompletions(
-		view: EditorView,
-		params: GetCompletionsParams,
-	): Promise<void> {
-		this.plugin.statusBar?.updateElement(true);
-		const res = await this.client.completion(params);
-		this.plugin.statusBar?.updateElement();
-
-		if (res && res.completions && res.completions.length > 0) {
-			const completions = res.completions.map((c) => c.displayText);
-			view.dispatch({
-				effects: [
-					InlineSuggestionEffect.of({
-						suggestions: completions,
-						index: 0,
-					}),
-				],
-			});
-		}
 	}
 
 	async onSettingsUpdate(): Promise<void> {

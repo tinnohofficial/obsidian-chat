@@ -1,17 +1,12 @@
 import { Notice, Plugin, WorkspaceLeaf } from "obsidian";
-
-import EventManager from "./events/EventManager";
 import CopilotAgent from "./copilot/CopilotAgent";
-import StatusBar from "./status/StatusBar";
 import CopilotPluginSettingTab, {
 	CopilotPluginSettings,
 	DEFAULT_SETTINGS,
 } from "./settings/CopilotPluginSettingTab";
-import ExtensionManager from "./extensions/ExtensionManager";
-import Vault from "./helpers/Vault";
 import File from "./helpers/File";
 import Logger from "./helpers/Logger";
-import Cacher from "./copilot/Cacher";
+import Vault from "./helpers/Vault";
 import ChatView from "./copilot-chat/views/ChatView";
 
 // @ts-expect-error - import to be bundled
@@ -33,10 +28,7 @@ import { CHAT_VIEW_TYPE } from "./copilot-chat/types/constants";
 export default class CopilotPlugin extends Plugin {
 	settingsTab: CopilotPluginSettingTab;
 	settings: CopilotPluginSettings;
-	statusBar: StatusBar | null;
 	copilotAgent: CopilotAgent;
-	private cmExtensionManager: ExtensionManager;
-	private eventManager: EventManager;
 	version = "1.1.2";
 	tabSize = Vault.DEFAULT_TAB_SIZE;
 
@@ -44,8 +36,6 @@ export default class CopilotPlugin extends Plugin {
 		this.settingsTab = new CopilotPluginSettingTab(this.app, this);
 		this.addSettingTab(this.settingsTab);
 		await this.settingsTab.loadSettings();
-
-		this.statusBar = new StatusBar(this);
 
 		Logger.getInstance().setDebug(this.settings.debug);
 
@@ -97,7 +87,7 @@ export default class CopilotPlugin extends Plugin {
 			this.settings.nodePath === ""
 		) {
 			new Notice(
-				"[GitHub Copilot] Please set the path to your node executable in the settings to use autocomplete feature.",
+				"[GitHub Copilot] Please set the path to your node executable in the settings to use the chat feature.",
 			);
 		}
 
@@ -112,27 +102,12 @@ export default class CopilotPlugin extends Plugin {
 			await this.copilotAgent.setup();
 		}
 
-		this.eventManager = new EventManager(this);
-		this.eventManager.registerEvents();
-
-		this.cmExtensionManager = new ExtensionManager(this);
-		this.registerEditorExtension(this.cmExtensionManager.getExtensions());
-
-		const file = this.app.workspace.getActiveFile();
-		if (file) {
-			Cacher.getInstance().setCurrentFilePath(
-				Vault.getBasePath(this.app),
-				file.path,
-			);
-		}
-
 		this.registerView(CHAT_VIEW_TYPE, (leaf) => new ChatView(leaf, this));
 		this.activateView();
 	}
 
 	onunload() {
 		this.copilotAgent?.stopAgent();
-		this.statusBar = null;
 		this.deactivateView();
 	}
 

@@ -1,11 +1,7 @@
 import { App, Notice, PluginSettingTab, Setting, debounce } from "obsidian";
-import { StrictMode } from "react";
-import { Root, createRoot } from "react-dom/client";
 
 import CopilotPlugin from "../main";
 import AuthModal from "../modal/AuthModal";
-import KeybindingInput from "../components/KeybindingInput";
-import AutocompleteInput from "../components/AutocompleteInput";
 import Node from "../helpers/Node";
 import Logger from "../helpers/Logger";
 import File from "../helpers/File";
@@ -16,15 +12,6 @@ import { defaultModels } from "../copilot-chat/store/slices/message";
 export interface SettingsObserver {
 	onSettingsUpdate(): Promise<void>;
 }
-
-export type Hotkeys = {
-	accept: string;
-	cancel: string;
-	request: string;
-	partial: string;
-	next: string;
-	disable: string;
-};
 
 export type CopilotChatSettings = {
 	deviceCode: string | null;
@@ -44,12 +31,7 @@ export interface CopilotPluginSettings {
 	nodePath: string;
 	nodePathUpdatedToNode20: boolean;
 	enabled: boolean;
-	hotkeys: Hotkeys;
-	suggestionDelay: number;
 	debug: boolean;
-	onlyOnHotkey: boolean;
-	onlyInCodeBlock: boolean;
-	exclude: string[];
 	deviceSpecificSettings: string[];
 	useDeviceSpecificSettings: boolean;
 	proxy: string;
@@ -62,19 +44,7 @@ export const DEFAULT_SETTINGS: CopilotPluginSettings = {
 	nodePath: "default",
 	nodePathUpdatedToNode20: false,
 	enabled: true,
-	hotkeys: {
-		accept: "Tab",
-		cancel: "Escape",
-		request: "Cmd-Shift-/",
-		partial: "Cmd-Shift-.",
-		next: "Cmd-Shift-ArrowDown",
-		disable: "Cmd-Shift-ArrowRight",
-	},
-	suggestionDelay: 500,
 	debug: false,
-	onlyOnHotkey: false,
-	onlyInCodeBlock: false,
-	exclude: [],
 	deviceSpecificSettings: ["nodePath"],
 	useDeviceSpecificSettings: false,
 	proxy: "",
@@ -95,7 +65,6 @@ export const DEFAULT_SETTINGS: CopilotPluginSettings = {
 class CopilotPluginSettingTab extends PluginSettingTab {
 	plugin: CopilotPlugin;
 	private observers: SettingsObserver[] = [];
-	root: Root | null = null;
 
 	constructor(app: App, plugin: CopilotPlugin) {
 		super(app, plugin);
@@ -107,12 +76,12 @@ class CopilotPluginSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl("h1", { text: "Inline Copilot Settings" });
+		containerEl.createEl("h1", { text: "GitHub Copilot Settings" });
 
 		new Setting(containerEl)
 			.setName("Enable Copilot")
 			.setDesc(
-				"Enable or disable the inline copilot. This will also start the copilot server.",
+				"Enable or disable GitHub Copilot. This will also start the copilot server.",
 			)
 			.addToggle((toggle) =>
 				toggle
@@ -157,165 +126,6 @@ class CopilotPluginSettingTab extends PluginSettingTab {
 							this.plugin.settings.nodePath = path;
 							await this.saveSettings();
 						}
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Suggestions delay")
-			.setDesc(
-				"The delay in milliseconds before generating suggestions. Default is 500ms.",
-			)
-			.addText((text) => {
-				text.inputEl.type = "number";
-				return text
-					.setPlaceholder("Enter the delay in milliseconds.")
-					.setValue(this.plugin.settings.suggestionDelay.toString())
-					.onChange(
-						debounce(
-							async (value) => {
-								this.plugin.settings.suggestionDelay =
-									parseInt(value);
-								await this.saveSettings();
-							},
-							1000,
-							true,
-						),
-					);
-			});
-
-		this.root = createRoot(
-			containerEl.createEl("div", {
-				cls: "copilot-settings-hotkeys-container",
-			}),
-		);
-
-		const bindings = [
-			{
-				title: "Accept suggestion",
-				description: "Keybinding to accept copilot suggestions.",
-				value: this.plugin.settings.hotkeys.accept,
-				onChange: (value: string) => {
-					this.plugin.settings.hotkeys.accept = value;
-				},
-				defaultValue: DEFAULT_SETTINGS.hotkeys.accept,
-			},
-			{
-				title: "Cancel suggestion",
-				description: "Keybinding to cancel copilot suggestions.",
-				value: this.plugin.settings.hotkeys.cancel,
-				onChange: (value: string) => {
-					this.plugin.settings.hotkeys.cancel = value;
-				},
-				defaultValue: DEFAULT_SETTINGS.hotkeys.cancel,
-			},
-			{
-				title: "Request suggestion",
-				description: "Keybinding to request copilot suggestions.",
-				value: this.plugin.settings.hotkeys.request,
-				onChange: (value: string) => {
-					this.plugin.settings.hotkeys.request = value;
-				},
-				defaultValue: DEFAULT_SETTINGS.hotkeys.request,
-			},
-			{
-				title: "Partial acceptation",
-				description: "Keybinding to accept word per word suggestions.",
-				value: this.plugin.settings.hotkeys.partial,
-				onChange: (value: string) => {
-					this.plugin.settings.hotkeys.partial = value;
-				},
-				defaultValue: DEFAULT_SETTINGS.hotkeys.partial,
-			},
-			{
-				title: "Next suggestion",
-				description:
-					"Keybinding to view the next suggestion if available.",
-				value: this.plugin.settings.hotkeys.next,
-				onChange: (value: string) => {
-					this.plugin.settings.hotkeys.next = value;
-				},
-				defaultValue: DEFAULT_SETTINGS.hotkeys.next,
-			},
-			{
-				title: "Enable/Disable Copilot",
-				description:
-					"Keybinding to enable or disable copilot suggestions.",
-				value: this.plugin.settings.hotkeys.disable,
-				onChange: (value: string) => {
-					this.plugin.settings.hotkeys.disable = value;
-				},
-				defaultValue: DEFAULT_SETTINGS.hotkeys.disable,
-			},
-		];
-
-		this.root.render(
-			<StrictMode>
-				<h3>Keybindings</h3>
-				<p className="copilot-settings-note">
-					Be aware that not all keybindings will work as some are
-					already defined and used by other plugins.
-				</p>
-				{bindings.map((binding, index) => (
-					<KeybindingInput
-						key={index}
-						title={binding.title}
-						description={binding.description}
-						value={binding.value}
-						onChange={binding.onChange}
-						defaultValue={binding.defaultValue}
-					/>
-				))}
-				<button
-					className="mod-cta copilot-settings-save-button"
-					onClick={() => {
-						this.saveSettings().then(() => {
-							this.plugin.app.workspace.updateOptions();
-						});
-					}}
-				>
-					Save keybindings
-				</button>
-				<h3>Exclude folders and files</h3>
-				<AutocompleteInput
-					title="Exclude"
-					description="Folders and files to exclude from suggestions."
-					values={this.plugin.settings.exclude}
-					plugin={this.plugin}
-					onSave={(values: string[]) => {
-						this.plugin.settings.exclude = values;
-						this.saveSettings().then(() => {
-							this.plugin.app.workspace.updateOptions();
-						});
-					}}
-				/>
-			</StrictMode>,
-		);
-
-		new Setting(containerEl)
-			.setName("Only on keybinding")
-			.setDesc(
-				"Only show suggestions when the 'request' keybinding is pressed. Default is false.",
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.onlyOnHotkey)
-					.onChange(async (value) => {
-						this.plugin.settings.onlyOnHotkey = value;
-						await this.saveSettings();
-					}),
-			);
-
-		new Setting(containerEl)
-			.setName("Only in code block")
-			.setDesc(
-				"Only show suggestions when the cursor is inside a code block. Default is false.",
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(this.plugin.settings.onlyInCodeBlock)
-					.onChange(async (value) => {
-						this.plugin.settings.onlyInCodeBlock = value;
-						await this.saveSettings();
 					}),
 			);
 
@@ -434,13 +244,6 @@ class CopilotPluginSettingTab extends PluginSettingTab {
 						),
 					);
 			});
-	}
-
-	public hide(): void {
-		if (this.root) {
-			this.root.unmount();
-			this.root = null;
-		}
 	}
 
 	public async loadSettings() {

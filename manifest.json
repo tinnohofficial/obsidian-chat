@@ -1,10 +1,10 @@
 {
-	"id": "github-copilot",
-	"name": "GitHub Copilot",
-	"version": "1.1.2",
-	"minAppVersion": "1.5.12",
-	"description": "Implement GitHub Copilot services (suggestion and chat) in Obsidian",
-	"author": "Vasseur Pierre-Adrien",
-	"authorUrl": "https://github.com/Pierrad",
+	"id": "github-copilot-chat",
+	"name": "AI Chat",
+	"version": "1.0.0",
+	"minAppVersion": "1.0.0",
+	"description": "Implements GitHub Copilot Chat in Obsidian",
+	"author": "Augustino Mageka",
+	"authorUrl": "https://github.com/tinnohofficial",
 	"isDesktopOnly": true
 }

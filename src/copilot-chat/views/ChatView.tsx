@@ -6,7 +6,7 @@ import CopilotPlugin from "../../main";
 import Chat from "../components/Chat";
 
 export const PluginContext = React.createContext<CopilotPlugin | undefined>(
-	undefined,
+	undefined
 );
 
 export default class ChatView extends ItemView {
@@ -43,7 +43,7 @@ export default class ChatView extends ItemView {
 				<React.StrictMode>
 					<Chat />
 				</React.StrictMode>
-			</PluginContext.Provider>,
+			</PluginContext.Provider>
 		);
 	}
 
